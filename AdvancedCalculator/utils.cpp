@@ -198,13 +198,13 @@ Node create_node(std::vector<Token> TokenVector) {
 	for (int i = 0; i < length; i++) {
 
 		Token tk = TokenVector[i];
-
+		Node NewNode(tk);
+		
 		if (tk.type == 3) {
-			
-			std::vector<Token> SlicedTokenVector(TokenVector.begin() + i + 1, TokenVector.end());
-			Node NewNode = create_node(SlicedTokenVector);
+			std::vector<Token> SlicdeTokenVector(TokenVector.begin() + i + 1, TokenVector.end());
+			Node ChildNode = create_node(SlicdeTokenVector);
 
-			head.child.push_back(NewNode);
+			NewNode.child.push_back(ChildNode);
 		}
 	}
 
