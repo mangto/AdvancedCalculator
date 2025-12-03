@@ -2,6 +2,6 @@
 
 Uisng Dijkstra's shunting yard algorithm
 - [X] Tokenizing
-- [ ] Parsing
+- [X] Parsing
 - [ ] Calcualting
 - [ ] Create Terms 
