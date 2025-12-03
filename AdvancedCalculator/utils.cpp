@@ -91,6 +91,18 @@ int digit_to_int(char DigitLikeChar) {
 
 double string_to_num(std::string NumLikeString) {
 
+	std::vector<Token> TokenVector = tokenize(NumLikeString);
+
+	print_token_vector(TokenVector); // debugging
+
+	std::stack<Token> parsed = parse(TokenVector);
+	
+	print_token_stack(parsed); // debugging
+
+	return 0.0f;
+}
+
+std::vector<Token> tokenize(std::string NumLikeString) {
 	int length = NumLikeString.size();
 	char target;
 	int type = 0; // 1: num, 2: string, 3: bracket_open, 4: bracket_close, 5: operator, Negative => changed
@@ -134,8 +146,8 @@ double string_to_num(std::string NumLikeString) {
 
 		// Operator: Type.5
 		else if (target == '+' || target == '-' ||
-				 target == '*' || target == '/' ||
-				 target == '^') {
+			target == '*' || target == '/' ||
+			target == '^') {
 			if (type != 0 && abs(type) != 5) { PrvType = abs(type); type = -5; }
 			else { type = 5; }
 		}
@@ -188,13 +200,9 @@ double string_to_num(std::string NumLikeString) {
 		}
 	}
 
-	print_token_vector(TokenVector);
 
-	parse(TokenVector);
-
-	return 0.0f;
+	return TokenVector;
 }
-
 
 /* Shunting Yard Algorithm */
 /*
@@ -254,7 +262,7 @@ int get_operator_level(Token tk) {
 	else { return -1; }
 }
 
-void parse(std::vector<Token> TokenVector) {
+std::stack<Token> parse(std::vector<Token> TokenVector) {
 	std::stack<Token> output = {};
 	std::stack<Token> op = {}; // operator
 	
@@ -286,23 +294,25 @@ void parse(std::vector<Token> TokenVector) {
 		}
 
 		// debugging
-		std::cout << "========================" << std::endl;
+		//std::cout << "========================" << std::endl;
 
-		std::cout << "read: ";
-		tk.print();
-		std::cout << "" << std::endl;
+		//std::cout << "read: ";
+		//tk.print();
+		//std::cout << "" << std::endl;
 
-		print_token_stack(output);
-		print_token_stack(op);
+		//print_token_stack(output);
+		//print_token_stack(op);
 	}
 
-	while (!op.empty()) {
+	while (!op.empty()) { // remainigs
 		output.push(op.top());
 		op.pop();
 	}
 
-	std::cout << "========================" << std::endl;
-	print_token_stack(output);
-	print_token_stack(op);
+	//std::cout << "========================" << std::endl;
+	//print_token_stack(output);
+	//print_token_stack(op);
+
+	return output;
 
 }

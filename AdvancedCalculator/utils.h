@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <vector>
+#include <stack>
 
 
 /* Token Class */
@@ -35,6 +36,12 @@ int digit_to_int(char DigitLikeChar);
 
 double string_to_num(std::string NumLikeString);
 
-void parse(std::vector<Token> TokenVector); 
+std::vector<Token> tokenize(std::string NumLikeString);
+
+void print_token_stack(std::stack<Token> TokenStack);
+
+int get_operator_level(Token tk);
+
+std::stack<Token> parse(std::vector<Token> TokenVector); 
 
 #endif // !UTILS_H
