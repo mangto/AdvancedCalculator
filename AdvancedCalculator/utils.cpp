@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <stack>
 
 #include "utils.h"
 
@@ -12,16 +13,16 @@ Token::Token() {
 	type = 0;
 }
 
-Token::Token(double Value) {
-	value = Value;
-	character = "_";
-	type = 1;
+Token::Token(double value) {
+	this->value = value;
+	this->character = "_";
+	this->type = 1;
 }
 
-Token::Token(std::string Value) {
-	value = 0.0f;
-	character = Value;
-	type = 2;
+Token::Token(std::string value) {
+	this->value = 0.0f;
+	this->character = value;
+	this->type = 2;
 }
 
 void Token::print() {
@@ -41,16 +42,6 @@ void print_token_vector(std::vector<Token> TokenVector) {
 		token.print();
 		std::cout << "," << std::endl;
 	}
-}
-
-/* Node Class */
-
-Node::Node() {
-	Token value(0.0f);
-}
-
-Node::Node(Token token) {
-	value = token;
 }
 
 /* Utils Functions */
@@ -99,7 +90,7 @@ int digit_to_int(char DigitLikeChar) {
 }
 
 double string_to_num(std::string NumLikeString) {
-	
+
 	int length = NumLikeString.size();
 	char target;
 	int type = 0; // 1: num, 2: string, 3: bracket_open, 4: bracket_close, 5: operator, Negative => changed
@@ -111,7 +102,7 @@ double string_to_num(std::string NumLikeString) {
 
 		target = NumLikeString[i];
 
-		std::cout << target << std::endl;
+		//std::cout << target << std::endl;
 
 		if (target == ' ') { continue; } // Ignore Space
 
@@ -133,20 +124,20 @@ double string_to_num(std::string NumLikeString) {
 
 		}
 
-		// Close-Bracket: Type.3
+		// Close-Bracket: Type.4
 		else if (target == ')' || target == '}' || target == ']') {
-			if (type != 0 && abs(type) != 3) { PrvType = abs(type); type = -3; }
-			else { type = 3; }
+			if (type != 0 && abs(type) != 4) { PrvType = abs(type); type = -4; }
+			else { type = 4; }
 
 			target = ')';
 		}
 
-		// Operator: Type.4
+		// Operator: Type.5
 		else if (target == '+' || target == '-' ||
 				 target == '*' || target == '/' ||
 				 target == '^') {
-			if (type != 0 && abs(type) != 4) { PrvType = abs(type); type = -4; }
-			else { type = 4; }
+			if (type != 0 && abs(type) != 5) { PrvType = abs(type); type = -5; }
+			else { type = 5; }
 		}
 
 		// String: Type.2
@@ -157,26 +148,25 @@ double string_to_num(std::string NumLikeString) {
 			buffer.push_back(target);
 		}
 
+		//std::cout << "bf: " << buffer << std::endl;
+
 		// push
-		if (type <= 0 && buffer != "") {
+		if (type <= 0 && buffer != "" && (PrvType == 1 || PrvType == 2)) {
 
-			if (PrvType == 1 || PrvType == 2) {
+			Token NewToken(buffer);
+			NewToken.type = abs(PrvType);
 
-				Token NewToken(buffer);
-				NewToken.type = abs(PrvType);
-
-				if (NewToken.type == 1) {
-					NewToken.value = std::stod(buffer);
-				}
-
-				TokenVector.push_back(NewToken);
-
-				buffer = "";
+			if (NewToken.type == 1) {
+				NewToken.value = std::stod(buffer);
 			}
+
+			TokenVector.push_back(NewToken);
+
+			buffer = "";
 
 		}
 
-		if (abs(type) == 3 || abs(type) == 4) {
+		if (abs(type) == 3 || abs(type) == 4 || abs(type) == 5) {
 			std::string buffer(1, target);
 			Token NewToken(buffer);
 			NewToken.type = abs(type);
@@ -184,29 +174,135 @@ double string_to_num(std::string NumLikeString) {
 			buffer = "";
 
 		}
+
+		if (i == length - 1 && buffer != "") { // last
+			Token NewToken(buffer);
+			NewToken.type = abs(type);
+			if (NewToken.type == 1) {
+				NewToken.value = std::stod(buffer);
+			}
+
+			TokenVector.push_back(NewToken);
+
+			buffer = "";
+		}
 	}
 
 	print_token_vector(TokenVector);
 
+	parse(TokenVector);
+
 	return 0.0f;
 }
 
-Node create_node(std::vector<Token> TokenVector) {
-	Node head;
-	int length = TokenVector.size();
+
+/* Shunting Yard Algorithm */
+/*
+Rule 1
+
+If the current input token is a symbol (= number):
+   Add it directly to the output token list.
+
+Rule 2
+
+If the current input token is an opening (left) parenthesis:
+   Add it to the operator stack.
+
+Rule 3
+
+If the current input token is a closing (right) parenthesis:
+   While the token at top of the operator stack is not a left parenthesis:
+	  Pop the token from the stack and add it to the output token.
+   Remove the final left parenthesis from the stack and discard it (do not add it to the output list).
+
+Rule 4
+
+If the current input token is an operator:
+   While the token at top of the operator stack is
+	 not a left parenthesis AND
+	 has a higher precedence OR (the same precedence and current token is left associative):
+	   Pop the token from the stack and add it to the output token list
+   Add current input token operator to the operator stack.
+*/
+/*
+	level
+		4: ( )
+		3: ^
+		2: * /
+		1: + -
+	*/
+
+void print_token_stack(std::stack<Token> TokenStack) {
 	
-	for (int i = 0; i < length; i++) {
 
-		Token tk = TokenVector[i];
-		Node NewNode(tk);
-		
-		if (tk.type == 3) {
-			std::vector<Token> SlicdeTokenVector(TokenVector.begin() + i + 1, TokenVector.end());
-			Node ChildNode = create_node(SlicdeTokenVector);
-
-			NewNode.child.push_back(ChildNode);
-		}
+	std::cout << "{ ";
+	
+	while (!TokenStack.empty()) {
+		TokenStack.top().print();
+		std::cout << ", ";
+		TokenStack.pop();
 	}
 
-	return head;
+	std::cout << " }" << std::endl;
+}
+
+int get_operator_level(Token tk) {
+	if (tk.character == "(" || tk.character == ")") { return 4; }
+	else if (tk.character == "^") { return 3; }
+	else if (tk.character == "*" || tk.character == "/") { return 2; }
+	else if (tk.character == "+" || tk.character == "-") { return 1; }
+	else { return -1; }
+}
+
+void parse(std::vector<Token> TokenVector) {
+	std::stack<Token> output = {};
+	std::stack<Token> op = {}; // operator
+	
+	for (Token tk : TokenVector) {
+
+		if (tk.type == 1) { output.push(tk); } // Rule 1
+		else if (tk.type == 2) { output.push(tk); }
+		else if (tk.type == 3) { op.push(tk); } // Rule 2
+		else if (tk.type == 4) { // Rule 3
+			while (op.top().type != 3) {
+				output.push(op.top());
+				op.pop();
+			}
+			op.pop();
+		}
+		else if (tk.type == 5) { // Rule 4.
+			while (
+				!op.empty() && // error handling
+				op.top().type != 3 && // not a left parenthesis
+				(get_operator_level(tk) < get_operator_level(op.top()) || // has a higher precedence
+					(get_operator_level(tk) == get_operator_level(op.top()) && tk.character != "^"))) {
+					// ^^^^^^: the same precedence and current token is left associative
+
+				output.push(op.top());
+				op.pop();
+			}
+
+			op.push(tk);
+		}
+
+		// debugging
+		std::cout << "========================" << std::endl;
+
+		std::cout << "read: ";
+		tk.print();
+		std::cout << "" << std::endl;
+
+		print_token_stack(output);
+		print_token_stack(op);
+	}
+
+	while (!op.empty()) {
+		output.push(op.top());
+		op.pop();
+	}
+
+	std::cout << "========================" << std::endl;
+	print_token_stack(output);
+	print_token_stack(op);
+
 }

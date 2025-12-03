@@ -1,5 +1,6 @@
 #include <iostream>
 #include <list>
+#include <stack>
 
 #include "term.h"
 #include "expression.h"
@@ -7,7 +8,9 @@
 
 int main() {
 
-	string_to_num("(1234.34 + sin(1234) + {3 * 2^3})");
+	string_to_num("5 + 6 * (3 - (1 ^ 2)) / 3");
+
+	//string_to_num("1234.34 + sin(1234) + {3 * 2^3}");
 
 	//string_to_term("(1234.34 + {3 * 2^3}) * x ^ 24.56");
 

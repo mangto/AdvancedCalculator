@@ -15,25 +15,13 @@ class Token {
 		double value;
 
 		Token();
-		Token(double Value);
-		Token(std::string Value);
+		Token(double value);
+		Token(std::string value);
 
 		void print();
 };
 
 void print_token_vector(std::vector<Token> TokenVector);
-
-/* Node Class */
-
-class Node {
-	public:
-		Token value;
-		std::vector<Node> child;
-
-		Node();
-		Node(Token token);
-};
-
 
 /* Utils Functions */
 
@@ -47,6 +35,6 @@ int digit_to_int(char DigitLikeChar);
 
 double string_to_num(std::string NumLikeString);
 
-Node create_node(std::vector<Token> TokenVector);
+void parse(std::vector<Token> TokenVector); 
 
 #endif // !UTILS_H

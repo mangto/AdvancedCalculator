@@ -9,7 +9,7 @@ class Term {
 		double coefficent;
 		double power;
 
-		Term(double Coefficent = 1, double Power = 0);
+		Term(double coefficent = 1.0f, double power = 0.0f);
 
 		void print();
 

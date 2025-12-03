@@ -4,9 +4,9 @@
 #include "term.h"
 #include "utils.h"
 
-Term::Term(double Coefficent, double Power) {
-	coefficent = Coefficent;
-	power = Power;
+Term::Term(double coefficent, double power) {
+	this->coefficent = coefficent;
+	this->power = power;
 }
 
 void string_to_term(std::string TermLikeString) {
