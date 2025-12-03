@@ -1,23 +1,16 @@
-#include <iostream>
-#include <string>
-
 #include "term.h"
-#include "utils.h"
+#include "calc.h"
 
 Term::Term(double coefficent, double power) {
 	this->coefficent = coefficent;
 	this->power = power;
 }
 
-void string_to_term(std::string TermLikeString) {
+Term::Term(std::string TermLikeString) {
 	/*
 	=======================================
 	Convert Term-Like-String to Term Object 
 	=======================================
-
-	Step 1. Scan left to right
-		-> Seperate nums
-	Step 2. Define new term
 	*/
 
 	// 12.34 * x ^ 24.56
@@ -26,7 +19,7 @@ void string_to_term(std::string TermLikeString) {
 	std::string nums[2] = { "", "" };
 	int index = 0;
 	
-	for (int i = 0; i < length; i++) { // Step 1.
+	for (int i = 0; i < length; i++) {
 		buffer = TermLikeString[i];
 		
 		if (buffer == 'x') { index++; continue; }
@@ -38,20 +31,25 @@ void string_to_term(std::string TermLikeString) {
 
 	}
 
-	if (nums[0].back() == '*') { nums[0].pop_back(); }
-	if (nums[1].front() == '^') { nums[1].erase(0, 1); }
 
-	std::cout << "{ \"" << nums[0] << "\", \"" << nums[1] << "\"}" << std::endl;
 
-	return;
+	// calculate expression
+	if (nums[0] != "") {
+		if (nums[0].back() == '*') { nums[0].pop_back(); }
+		this->coefficent = Calc::string_to_num(nums[0]);
+	}
+	if (nums[1] != "") { // if power exists
+		if (nums[1].front() == '^') { nums[1].erase(0, 1); }
+		this->power = Calc::string_to_num(nums[1]);
+	}
 }
 
 void Term::print() {
-	if (power == 0.0f) {
-		std::cout << coefficent << " * x" << std::endl;
-	}
-	else {
-		std::cout << coefficent << " * x ^ " << power << std::endl;
+	if (this->coefficent != 1.0f) { std::cout << this->coefficent << " * "; }
+	std::cout << "x";
+	if (this->power != 1.0f) { std::cout << " ^ " << this->power; }
+}
 
-	}
+double Term::Substitution(double x) {
+	return this->coefficent * pow(x, this->power);
 }

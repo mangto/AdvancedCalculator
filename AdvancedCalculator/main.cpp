@@ -1,18 +1,20 @@
-#include <iostream>
-#include <list>
-#include <stack>
-
 #include "term.h"
 #include "expression.h"
-#include "utils.h"
+#include "calc.h"
 
 int main() {
 
-	string_to_num("5 + 6 * (3 - (1 ^ 2)) / 3");
+	std::string input;
+	double result=0.0f;
 
-	//string_to_num("1234.34 + sin(1234) + {3 * 2^3}");
+	while (true) {
 
-	//string_to_term("(1234.34 + {3 * 2^3}) * x ^ 24.56");
+		std::cout << "Type Term\n >>> ";
+		std::cin >> input;
 
+		Expression MyExpression(input);
+		MyExpression.print();
+		std::cout << std::endl;
+	}
 	return 0;
 }

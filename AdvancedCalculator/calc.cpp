@@ -1,9 +1,4 @@
-#include <iostream>
-#include <string>
-#include <vector>
-#include <stack>
-
-#include "utils.h"
+#include "calc.h"
 
 /* Token Class */
 
@@ -31,22 +26,22 @@ void Token::print() {
 	else { std::cout << character; }
 }
 
-void print_token_vector(std::vector<Token> TokenVector) {
+void Calc::print_token_vector(std::vector<Token> TokenVector) {
 	int length = TokenVector.size();
 
-	std::cout << "[Token List]" << std::endl;
+	std::cout << "{ ";
 
 	for (Token token: TokenVector) {
-
-		std::cout << " [Tk] Type." << token.type << " ";
 		token.print();
-		std::cout << "," << std::endl;
+		std::cout << ", ";
 	}
+
+	std::cout << "}" << std::endl;
 }
 
 /* Utils Functions */
 
-bool is_digit(std::string DigitLikeString) {
+bool Calc::is_digit(std::string DigitLikeString) {
 	if (DigitLikeString == "0" ||
 		DigitLikeString == "1" ||
 		DigitLikeString == "2" ||
@@ -63,14 +58,14 @@ bool is_digit(std::string DigitLikeString) {
 	return false;
 }
 
-bool is_digit(char DigitLikeChar) {
+bool Calc::is_digit(char DigitLikeChar) {
 	
 	std::string str(1, DigitLikeChar);
 
-	return is_digit(str);
+	return Calc::is_digit(str);
 }
 
-int digit_to_int(std::string DigitLikeString) {
+int Calc::digit_to_int(std::string DigitLikeString) {
 	if (DigitLikeString == "0") { return 0; }
 	else if (DigitLikeString == "1") { return 1; }
 	else if (DigitLikeString == "2") { return 2; }
@@ -83,26 +78,28 @@ int digit_to_int(std::string DigitLikeString) {
 	else if (DigitLikeString == "9") { return 9; }
 }
 
-int digit_to_int(char DigitLikeChar) {
+int Calc::digit_to_int(char DigitLikeChar) {
 	std::string str(1, DigitLikeChar);
 
-	return digit_to_int(str);
+	return Calc::digit_to_int(str);
 }
 
-double string_to_num(std::string NumLikeString) {
+double Calc::string_to_num(std::string NumLikeString) {
 
-	std::vector<Token> TokenVector = tokenize(NumLikeString);
+	std::vector<Token> TokenVector = Calc::tokenize(NumLikeString);
 
-	print_token_vector(TokenVector); // debugging
+	//print_token_vector(TokenVector); // debugging
 
-	std::stack<Token> parsed = parse(TokenVector);
+	std::vector<Token> parsed = Calc::parse(TokenVector);
 	
-	print_token_stack(parsed); // debugging
+	//print_token_vector(parsed); // debugging
 
-	return 0.0f;
+	double result = Calc::calculate_parsed(parsed);
+
+	return result;
 }
 
-std::vector<Token> tokenize(std::string NumLikeString) {
+std::vector<Token> Calc::tokenize(std::string NumLikeString) {
 	int length = NumLikeString.size();
 	char target;
 	int type = 0; // 1: num, 2: string, 3: bracket_open, 4: bracket_close, 5: operator, Negative => changed
@@ -121,7 +118,7 @@ std::vector<Token> tokenize(std::string NumLikeString) {
 		// Digit (including floating point): Type.1
 		else if (is_digit(target) || target == '.') {
 
-			if (type != 0 && abs(type) != 1) { PrvType = abs(type);  type = -1; }
+			if (type != 1 && abs(type) != 1) { PrvType = abs(type);  type = -1; }
 			else { type = 1; }
 
 			buffer.push_back(target);
@@ -171,6 +168,10 @@ std::vector<Token> tokenize(std::string NumLikeString) {
 			if (NewToken.type == 1) {
 				NewToken.value = std::stod(buffer);
 			}
+			else {
+				if (NewToken.character == "pi") { NewToken.type = 1; NewToken.value = PI; }
+				else if (NewToken.character == "e") { NewToken.type = 1; NewToken.value = E; }
+			}
 
 			TokenVector.push_back(NewToken);
 
@@ -205,7 +206,7 @@ std::vector<Token> tokenize(std::string NumLikeString) {
 }
 
 /* Shunting Yard Algorithm */
-/*
+/* Shunting Yard Algorithm Rules
 Rule 1
 
 If the current input token is a symbol (= number):
@@ -240,9 +241,8 @@ If the current input token is an operator:
 		1: + -
 	*/
 
-void print_token_stack(std::stack<Token> TokenStack) {
+void Calc::print_token_stack(std::stack<Token> TokenStack) {
 	
-
 	std::cout << "{ ";
 	
 	while (!TokenStack.empty()) {
@@ -251,42 +251,43 @@ void print_token_stack(std::stack<Token> TokenStack) {
 		TokenStack.pop();
 	}
 
-	std::cout << " }" << std::endl;
+	std::cout << "}" << std::endl;
 }
 
-int get_operator_level(Token tk) {
+int Calc::get_operator_level(Token tk) {
 	if (tk.character == "(" || tk.character == ")") { return 4; }
 	else if (tk.character == "^") { return 3; }
 	else if (tk.character == "*" || tk.character == "/") { return 2; }
 	else if (tk.character == "+" || tk.character == "-") { return 1; }
-	else { return -1; }
+	else if (tk.type == 2) {
+		return 3;
+	}
 }
 
-std::stack<Token> parse(std::vector<Token> TokenVector) {
-	std::stack<Token> output = {};
+std::vector<Token> Calc::parse(std::vector<Token> TokenVector) {
+	std::vector<Token> output = {};
 	std::stack<Token> op = {}; // operator
 	
 	for (Token tk : TokenVector) {
 
-		if (tk.type == 1) { output.push(tk); } // Rule 1
-		else if (tk.type == 2) { output.push(tk); }
+		if (tk.type == 1) { output.push_back(tk); } // Rule 1
 		else if (tk.type == 3) { op.push(tk); } // Rule 2
 		else if (tk.type == 4) { // Rule 3
 			while (op.top().type != 3) {
-				output.push(op.top());
+				output.push_back(op.top());
 				op.pop();
 			}
 			op.pop();
 		}
-		else if (tk.type == 5) { // Rule 4.
+		else if (tk.type == 5 || tk.type == 2) { // Rule 4.
 			while (
 				!op.empty() && // error handling
 				op.top().type != 3 && // not a left parenthesis
-				(get_operator_level(tk) < get_operator_level(op.top()) || // has a higher precedence
-					(get_operator_level(tk) == get_operator_level(op.top()) && tk.character != "^"))) {
+				(Calc::get_operator_level(tk) < Calc::get_operator_level(op.top()) || // has a higher precedence
+					(Calc::get_operator_level(tk) == Calc::get_operator_level(op.top()) && tk.character != "^"))) {
 					// ^^^^^^: the same precedence and current token is left associative
 
-				output.push(op.top());
+				output.push_back(op.top());
 				op.pop();
 			}
 
@@ -305,7 +306,7 @@ std::stack<Token> parse(std::vector<Token> TokenVector) {
 	}
 
 	while (!op.empty()) { // remainigs
-		output.push(op.top());
+		output.push_back(op.top());
 		op.pop();
 	}
 
@@ -315,4 +316,52 @@ std::stack<Token> parse(std::vector<Token> TokenVector) {
 
 	return output;
 
+}
+
+double Calc::calculate_parsed(std::vector<Token> ParsedTokenVector) {
+	std::vector<double> temp;
+
+	for (Token tk : ParsedTokenVector) {
+
+		//std::cout << "====================" << std::endl;
+		//for (double val : temp) { std::cout << val << ", "; }
+		//std::cout << std::endl;
+
+		if (tk.type == 1) { temp.push_back(tk.value); } // num
+		else if (tk.type == 5) { // operator
+			double a = temp[temp.size() - 2];
+			double b = temp[temp.size() - 1];
+
+			temp.pop_back();
+			temp.pop_back();
+
+			if (tk.character == "+") { temp.push_back(a + b); }
+			else if (tk.character == "-") { temp.push_back(a - b); }
+			else if (tk.character == "*") { temp.push_back(a * b); }
+			else if (tk.character == "^") { temp.push_back(pow(a, b)); }
+			else if (tk.character == "/") {
+				if (b == 0.0f) { return 0.0f; } // divided by 0
+
+				temp.push_back(a / b);
+			}
+		}
+
+		else if (tk.type == 2) { // string
+
+			double a = temp[temp.size() - 1];
+			double result = 0.0f;
+
+			temp.pop_back();
+
+			if (tk.character == "sin") { result = sin(a); }
+			else if (tk.character == "cos") { result = cos(a); }
+			else if (tk.character == "tan") { result = tan(a); }
+			else if (tk.character == "log") { result = log10(a); }
+			else if (tk.character == "ln") { result = log(a); }
+
+			temp.push_back(result);
+		}
+	}
+
+	return temp[0];
 }

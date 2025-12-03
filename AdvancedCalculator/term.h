@@ -4,17 +4,20 @@
 
 #include <iostream>
 
+#include "calc.h"
+#include "term.h"
+
 class Term {
 	public:
 		double coefficent;
 		double power;
 
-		Term(double coefficent = 1.0f, double power = 0.0f);
+		Term(double coefficent = 1.0f, double power = 1.0f);
+		Term(std::string TermLikeString);
 
 		void print();
+		double Substitution(double x);
 
 };
-
-void string_to_term(std::string TermLikeString);
 
 #endif // !TERM_H

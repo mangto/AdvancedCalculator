@@ -2,15 +2,18 @@
 #ifndef EXPRESSION_H
 #define EXPRESSION_H
 
-#include <list>
+#include <vector>
 
 #include "term.h"
 
 class Expression {
 	public:
-		std::list<Term> terms;
+		std::vector<Term> terms;
 
-		Expression(const std::list<Term>& Terms);
+		Expression(std::vector<Term> terms);
+		Expression(std::string ExpressionLikeString);
+
+		void print();
 };
 
 
