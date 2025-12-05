@@ -1,20 +1,13 @@
-#include "term.h"
+#include <iostream>
+
 #include "expression.h"
-#include "calc.h"
 
 int main() {
 
-	std::string input;
-	double result=0.0f;
+	ep::Variable::create_variable('x');
+	ep::add_constant("dou", 175.5f);
 
-	while (true) {
+	ep::parse::parse_string("3*x*(1+16*sin(2/3*pi))+dou");
 
-		std::cout << "Type Term\n >>> ";
-		std::cin >> input;
-
-		Expression MyExpression(input);
-		MyExpression.print();
-		std::cout << std::endl;
-	}
 	return 0;
 }

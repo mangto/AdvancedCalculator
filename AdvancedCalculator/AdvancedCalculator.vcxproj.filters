@@ -21,21 +21,9 @@
     <ClCompile Include="expression.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="term.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="calc.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="expression.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="term.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="calc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
