@@ -1,7 +1,7 @@
 # AdvancedCalculator
 
-Uisng Dijkstra's shunting yard algorithm
+Uisng Shunting yard algorithm & Binary tree
 - [X] Tokenizing
 - [X] Parsing
-- [ ] Calcualting
+- [X] Calcualting
 - [ ] Create Terms 
