@@ -1,59 +1,11 @@
 #include "expression.h"
 
 /* namespace: ep */
-/* class: Expression*/
-ep::Expression::Expression(std::string ExpressionLikeString) {
 
-};
-
-/* class: Variable */
-ep::Variable::Variable(char character) {
-	this->character = character;
-	ep::VARIABLES.insert({ character, this });
-}
-
-ep::Variable ep::Variable::create_variable(char character) {
-	// same as ep::Variable(char character)
-	ep::Variable var(character);
-
-	return var;
-}
-
-void ep::Variable::set_value(char character, double value) {
-
-	if (ep::VARIABLES.find(character) != ep::VARIABLES.end()) {
-
-		ep::VARIABLES[character]->value = value;
-
-	}
-
-}
-
-double ep::Variable::get_value(char character) {
-	
-	if (ep::VARIABLES.find(character) != ep::VARIABLES.end()) {
-
-		return ep::VARIABLES[character]->value;
-
-	}
-
-	return 0.0f;
-}
-
-double ep::Variable::get_value(char character, double DefaultValue) {
-	
-	if (ep::VARIABLES.find(character) != ep::VARIABLES.end()) {
-
-		return ep::VARIABLES[character]->value;
-
-	}
-
-	return DefaultValue;
-}
 
 /* Token */
 
-void ep::add_constant(std::string name, double value) {
+void ep::create_constant(std::string name, double value) {
 	if (ep::CONSTANTS.find(name) != ep::CONSTANTS.end()) {
 		ep::CONSTANTS[name] = value;
 	}
@@ -96,17 +48,17 @@ ep::Token::Token(TokenType type, double value) {
 
 void ep::Token::print() {
 	if (this->type == ep::TokenType::NUM) {
-		std::cout << this->value; 
+		std::cout << this->value;
 	}
-	
-	else if (this->type == ep::TokenType::VARIABLE || this->type == ep::TokenType::FUNCTION) { 
-		std::cout << "<" << this->text<<">";
+
+	else if (this->type == ep::TokenType::VARIABLE || this->type == ep::TokenType::FUNCTION) {
+		std::cout << "<" << this->text << ">";
 	}
 
 	else if (this->type == ep::TokenType::BRACKET_OPEN || this->type == ep::TokenType::BRACKET_CLOSE) {
 		std::cout << this->text;
 	}
-	
+
 	else { std::cout << "\"" << this->text << "\""; }
 }
 
@@ -156,28 +108,85 @@ void ep::Token::auto_convert_type(ep::Token* token) {
 			token->function = ep::FunctionType::LN;
 			token->type = ep::TokenType::FUNCTION;
 		}
+		else {
+			token->type = ep::TokenType::VARIABLE;
+		}
 	}
 }
 
+
+/* class: Expression*/
+ep::Expression::Expression(std::queue<ep::Token> TokenQueue) {
+	this->TokenQueue = TokenQueue;
+};
+
+void ep::Expression::simplize() {
+
+}
+
+double ep::Expression::substitution() {
+
+	std::queue<ep::Token> output = {};
+	int length = this->TokenQueue.size();
+
+	for (int i = 0; i < length; i++) {
+
+	}
+
+	return 0.0l;
+}
+
+double ep::Expression::substitution(std::map<char, double> VariableMap) {
+	return 0.0l;
+}
+
+
+/* class: Variable */
+ep::Variable::Variable(char character) {
+	this->character = character;
+	ep::VARIABLES.insert({ character, this });
+}
+
+ep::Variable ep::Variable::create_variable(char character) {
+	// same as ep::Variable(char character)
+	ep::Variable var(character);
+
+	return var;
+}
+
+void ep::Variable::set_value(char character, double value) {
+
+	if (ep::VARIABLES.find(character) != ep::VARIABLES.end()) {
+
+		ep::VARIABLES[character]->value = value;
+
+	}
+
+}
+
+double ep::Variable::get_value(char character) {
+	
+	if (ep::VARIABLES.find(character) != ep::VARIABLES.end()) {
+
+		return ep::VARIABLES[character]->value;
+
+	}
+
+	return 0.0f;
+}
+
+double ep::Variable::get_value(char character, double DefaultValue) {
+	
+	if (ep::VARIABLES.find(character) != ep::VARIABLES.end()) {
+
+		return ep::VARIABLES[character]->value;
+
+	}
+
+	return DefaultValue;
+}
+
 /* namespace: parse */
-
-/* class: binary tree */
-
-ep::parse::Node::Node() {
-
-}
-
-ep::parse::Node::Node(ep::Token token) {
-	this->token = token;
-}
-
-void ep::parse::Node::set_left(ep::parse::Node* left) {
-	this->left = left;
-}
-
-void ep::parse::Node::set_right(ep::parse::Node* right) {
-	this->right = right;
-}
 
 /* parse */
 
@@ -304,15 +313,12 @@ std::queue<ep::Token> ep::parse::tokenize(std::string ExpressionLikeString) {
 	output.push(NewToken);
 
 	return output;
-
 }
 
-ep::parse::Node ep::parse::parse_string(std::string ExpressionLikeString) {
+ep::Expression ep::parse::parse_string(std::string ExpressionLikeString) {
 	
 	std::queue<ep::Token> output = {};
 	std::stack<ep::Token> op = {}; // operator
-
-	ep::parse::Node head;
 
 	std::queue<ep::Token> tokenized = ep::parse::tokenize(ExpressionLikeString);
 
@@ -344,7 +350,9 @@ ep::parse::Node ep::parse::parse_string(std::string ExpressionLikeString) {
 			op.pop();
 		}
 
-		else if (buffer.type == ep::TokenType::OPERATOR || buffer.type == ep::TokenType::FUNCTION) {
+		else if (buffer.type == ep::TokenType::OPERATOR || 
+				 buffer.type == ep::TokenType::FUNCTION || 
+				 buffer.type == ep::TokenType::STRING) {
 			while (
 				!op.empty() &&
 				op.top().type != ep::TokenType::BRACKET_OPEN &&
@@ -359,7 +367,12 @@ ep::parse::Node ep::parse::parse_string(std::string ExpressionLikeString) {
 		tokenized.pop();
 	}
 
+	while (!op.empty()) {
+		output.push(op.top());
+		op.pop();
+	}
+
 	ep::parse::print_token_queue(output);
 
-	return head;
+	return Expression(output);
 }

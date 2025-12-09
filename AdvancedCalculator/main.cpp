@@ -5,7 +5,7 @@
 int main() {
 
 	ep::Variable::create_variable('x');
-	ep::add_constant("dou", 175.5f);
+	ep::create_constant("dou", 175.5f);
 
 	ep::parse::parse_string("3*x*(1+16*sin(2/3*pi))+dou");
 
