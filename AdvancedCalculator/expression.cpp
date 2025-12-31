@@ -5,7 +5,7 @@
 
 /* Token */
 
-void ep::create_constant(std::string name, double value) {
+void ep::create_constant(std::string name, long double value) {
 	if (ep::CONSTANTS.find(name) != ep::CONSTANTS.end()) {
 		ep::CONSTANTS[name] = value;
 	}
@@ -38,7 +38,7 @@ ep::Token::Token(TokenType type, std::string text) {
 	this->id = 0;
 }
 
-ep::Token::Token(TokenType type, double value) {
+ep::Token::Token(TokenType type, long double value) {
 	this->type = type;
 	this->function = ep::FunctionType::NONE;
 	this->text = text;
@@ -91,22 +91,27 @@ void ep::Token::auto_convert_type(ep::Token* token) {
 		else if (token->text == "sin") {
 			token->function = ep::FunctionType::SIN;
 			token->type = ep::TokenType::FUNCTION;
+			token->id = 4;
 		}
 		else if (token->text == "cos") {
 			token->function = ep::FunctionType::COS;
 			token->type = ep::TokenType::FUNCTION;
+			token->id = 4;
 		}
 		else if (token->text == "tan") {
 			token->function = ep::FunctionType::TAN;
 			token->type = ep::TokenType::FUNCTION;
+			token->id = 4;
 		}
 		else if (token->text == "log") {
 			token->function = ep::FunctionType::LOG;
 			token->type = ep::TokenType::FUNCTION;
+			token->id = 4;
 		}
 		else if (token->text == "ln") {
 			token->function = ep::FunctionType::LN;
 			token->type = ep::TokenType::FUNCTION;
+			token->id = 4;
 		}
 		else {
 			token->type = ep::TokenType::VARIABLE;
@@ -124,19 +129,102 @@ void ep::Expression::simplize() {
 
 }
 
-double ep::Expression::substitution() {
+long double ep::Expression::substitution() {
 
-	std::queue<ep::Token> output = {};
-	int length = this->TokenQueue.size();
+	std::stack<long double> output = {};
+	std::queue<ep::Token> TokenQueue = this->TokenQueue;
+	int length = TokenQueue.size();
+	
+	ep::Token* TkBuffer;
+	ep::TokenType TypeBuffer;
+	long double a = 0.0l, b = 0.0l; // Use when calculate with OPERATOR or FUNCTION
 
 	for (int i = 0; i < length; i++) {
 
+		TkBuffer = &TokenQueue.front();
+		TypeBuffer = TkBuffer->type;
+
+		if (TypeBuffer == ep::TokenType::NUM) {
+			output.push(TkBuffer->value);
+		}
+
+		else if (TypeBuffer == ep::TokenType::VARIABLE) {
+			output.push(ep::Variable::get_value(TkBuffer->text[0])); // Get value of variable using text and Push
+		}
+
+		else if (TypeBuffer == ep::TokenType::OPERATOR) {
+
+			b = output.top(); // Behind
+			output.pop();
+			a = output.top(); // Front
+			output.pop();
+
+
+			if (TkBuffer->id == 0) { // +
+				output.push(a + b);
+			}
+
+			else if (TkBuffer->id == 1) { // -
+				output.push(a - b);
+			}
+
+			else if (TkBuffer->id == 2) { // *
+				output.push(a * b);
+			}
+
+			else if (TkBuffer->id == 3) { // /
+				output.push(a / b);
+			}
+
+			else if (TkBuffer->id == 4) { // ^
+				output.push(pow(a, b));
+			}
+		}
+
+		else if (TypeBuffer == ep::TokenType::FUNCTION) {
+			a = output.top();
+			output.pop();
+
+
+			if (TkBuffer->function == ep::FunctionType::SIN) {
+				output.push(sinl(a));
+			}
+
+			else if (TkBuffer->function == ep::FunctionType::COS) {
+				output.push(cosl(a));
+			}
+
+			else if (TkBuffer->function == ep::FunctionType::TAN) {
+				output.push(tanl(a));
+			}
+
+			else if (TkBuffer->function == ep::FunctionType::LOG) {
+				output.push(log10l(a));
+			}
+
+			else if (TkBuffer->function == ep::FunctionType::LN) {
+				output.push(logl(a));
+			}
+		}
+
+		TokenQueue.pop();
+
+		std::cout << "[";
+		TkBuffer->print();
+		std::cout << "] ";
+		std::stack<long double> copied = output;
+		for (int j = 0; j < copied.size(); j++) {
+			std::cout << copied.top() << ", ";
+			copied.pop();
+		}
+		std::cout << ";" << std::endl;
+
 	}
 
-	return 0.0l;
+	return output.top();
 }
 
-double ep::Expression::substitution(std::map<char, double> VariableMap) {
+long double ep::Expression::substitution(std::map<char, long double> VariableMap) {
 	return 0.0l;
 }
 
@@ -154,7 +242,7 @@ ep::Variable ep::Variable::create_variable(char character) {
 	return var;
 }
 
-void ep::Variable::set_value(char character, double value) {
+void ep::Variable::set_value(char character, long double value) {
 
 	if (ep::VARIABLES.find(character) != ep::VARIABLES.end()) {
 
@@ -164,7 +252,7 @@ void ep::Variable::set_value(char character, double value) {
 
 }
 
-double ep::Variable::get_value(char character) {
+long double ep::Variable::get_value(char character) {
 	
 	if (ep::VARIABLES.find(character) != ep::VARIABLES.end()) {
 
@@ -175,7 +263,7 @@ double ep::Variable::get_value(char character) {
 	return 0.0f;
 }
 
-double ep::Variable::get_value(char character, double DefaultValue) {
+long double ep::Variable::get_value(char character, long double DefaultValue) {
 	
 	if (ep::VARIABLES.find(character) != ep::VARIABLES.end()) {
 
@@ -212,7 +300,8 @@ ep::TokenType ep::parse::get_type(char character) {
 		character == '2' || character == '3' ||
 		character == '4' || character == '5' ||
 		character == '6' || character == '7' ||
-		character == '8' || character == '9') {
+		character == '8' || character == '9' ||
+		character == '.') {
 		return ep::TokenType::NUM;
 	}
 
@@ -276,8 +365,11 @@ std::queue<ep::Token> ep::parse::tokenize(std::string ExpressionLikeString) {
 	bool PushBuffer;
 
 	for (char buffer : ExpressionLikeString) {
+		if (buffer == ' ') { continue; }
+
 		PushBuffer = true;
 		type = ep::parse::get_type(buffer);
+
 
 		if (type == ep::TokenType::NUM || type == ep::TokenType::STRING) {
 			temp.push_back(buffer);
@@ -291,7 +383,6 @@ std::queue<ep::Token> ep::parse::tokenize(std::string ExpressionLikeString) {
 
 			ep::Token NewToken(PrvType, temp);
 			ep::Token::auto_convert_type(&NewToken);
-
 			output.push(NewToken);
 			temp = "";
 			temp.push_back(buffer);
@@ -301,6 +392,7 @@ std::queue<ep::Token> ep::parse::tokenize(std::string ExpressionLikeString) {
 			temp = "";
 			temp.push_back(buffer); 
 			ep::Token NewToken(type, temp);
+			ep::Token::auto_convert_type(&NewToken);
 			output.push(NewToken);
 			temp = "";
 		}
@@ -308,10 +400,13 @@ std::queue<ep::Token> ep::parse::tokenize(std::string ExpressionLikeString) {
 		PrvType = type;
 	}
 
-	ep::Token NewToken(PrvType, temp);
-	ep::Token::auto_convert_type(&NewToken);
-	output.push(NewToken);
+	if (!temp.empty()) {
 
+		ep::Token NewToken(PrvType, temp);
+		ep::Token::auto_convert_type(&NewToken);
+		output.push(NewToken);
+
+	}
 	return output;
 }
 
@@ -348,19 +443,27 @@ ep::Expression ep::parse::parse_string(std::string ExpressionLikeString) {
 			}
 
 			op.pop();
+
+			if (!op.empty() && op.top().type == ep::TokenType::FUNCTION) {
+				output.push(op.top());
+				op.pop();
+			}
 		}
 
 		else if (buffer.type == ep::TokenType::OPERATOR || 
-				 buffer.type == ep::TokenType::FUNCTION || 
 				 buffer.type == ep::TokenType::STRING) {
 			while (
 				!op.empty() &&
 				op.top().type != ep::TokenType::BRACKET_OPEN &&
-				((op.top().id / 2 < buffer.id / 2) ||
+				((op.top().id / 2 > buffer.id / 2) ||
 				(op.top().id / 2 == buffer.id / 2 && buffer.id != 4))) {
 				output.push(op.top());
 				op.pop();
 			}
+			op.push(buffer);
+		}
+
+		else if (buffer.type == ep::TokenType::FUNCTION) {
 			op.push(buffer);
 		}
 

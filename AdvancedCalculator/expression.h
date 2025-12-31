@@ -3,6 +3,8 @@
 #define EXPRESSION_H
 
 #include <iostream>
+#include <iomanip>
+#include <math.h>
 #include <string>
 #include <map>
 #include <queue>
@@ -21,33 +23,33 @@ namespace ep {
 		SIN, COS, TAN, LOG, LN, NONE,
 	};
 
-	static std::map<std::string, double> CONSTANTS = {
+	static std::map<std::string, long double> CONSTANTS = {
 		{"pi", 3.1415926535897932384626l},
 		{"e",  2.7182818284590452353602l},
 	};
 
-	void create_constant(std::string name, double value);
+	void create_constant(std::string name, long double value);
 
 	class Token {
-	public:
-		ep::TokenType type;
-		ep::FunctionType function;
-		std::string text;
-		double value;
-		int id;
-		/*  ^~~ Sub ID of Token
-		*		<OPERATOR> ( id // 2 -> operator level )
-		*			{ 0: +, 1: -, 2: *, 3: /, 4: ^ }
-		*/
+		public:
+			ep::TokenType type;
+			ep::FunctionType function;
+			std::string text;
+			long double value;
+			int id;
+			/*  ^~~ Sub ID of Token
+			*		<OPERATOR> ( id // 2 -> operator level )
+			*			{ 0: +, 1: -, 2: *, 3: /, 4: ^ }
+			*/
 
-		Token();
-		Token(TokenType type, std::string text, int id); // for operators and variables
-		Token(TokenType type, std::string text); // for string
-		Token(TokenType type, double value); // for num
+			Token();
+			Token(TokenType type, std::string text, int id); // for operators and variables
+			Token(TokenType type, std::string text); // for string
+			Token(TokenType type, long double value); // for num
 
-		void print();
+			void print();
 
-		static void auto_convert_type(ep::Token* token);
+			static void auto_convert_type(ep::Token* token);
 	};
 
 	/* Expression */
@@ -60,9 +62,9 @@ namespace ep {
 
 			void simplize();
 
-			double substitution();
+			long double substitution();
 
-			double substitution(std::map<char, double> VariableMap);
+			long double substitution(std::map<char, long double> VariableMap);
 
 	};
 
@@ -82,9 +84,9 @@ namespace ep {
 
 			/* static methods */
 			static Variable create_variable(char character);
-			static void set_value(char character, double value);
-			static double get_value(char character);
-			static double get_value(char character, double DefaultValue);
+			static void set_value(char character, long double value);
+			static long double get_value(char character);
+			static long double get_value(char character, long double DefaultValue);
 	};
 
 
