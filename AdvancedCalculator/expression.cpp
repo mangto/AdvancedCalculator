@@ -161,23 +161,23 @@ long double ep::Expression::substitution() {
 
 
 			if (TkBuffer->id == 0) { // +
-				output.push(a + b);
+				output.push((long double) a + b);
 			}
 
 			else if (TkBuffer->id == 1) { // -
-				output.push(a - b);
+				output.push((long double) a - b);
 			}
 
 			else if (TkBuffer->id == 2) { // *
-				output.push(a * b);
+				output.push((long double) a * b);
 			}
 
 			else if (TkBuffer->id == 3) { // /
-				output.push(a / b);
+				output.push((long double)a / b);
 			}
 
 			else if (TkBuffer->id == 4) { // ^
-				output.push(pow(a, b));
+				output.push((long double) pow(a, b));
 			}
 		}
 
@@ -209,15 +209,13 @@ long double ep::Expression::substitution() {
 
 		TokenQueue.pop();
 
-		std::cout << "[";
-		TkBuffer->print();
-		std::cout << "] ";
-		std::stack<long double> copied = output;
-		for (int j = 0; j < copied.size(); j++) {
-			std::cout << copied.top() << ", ";
-			copied.pop();
-		}
-		std::cout << ";" << std::endl;
+		//std::stack<long double> copied = output;
+		//int size = copied.size();
+		//for (int j = 0; j < size; j++) {
+		//	std::cout << copied.top() << ", ";
+		//	copied.pop();
+		//}
+		//std::cout << ";" << std::endl;
 
 	}
 
@@ -475,7 +473,7 @@ ep::Expression ep::parse::parse_string(std::string ExpressionLikeString) {
 		op.pop();
 	}
 
-	ep::parse::print_token_queue(output);
+	//ep::parse::print_token_queue(output);
 
 	return Expression(output);
 }
